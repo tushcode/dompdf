@@ -47,11 +47,22 @@ class Block extends AbstractFrameReflower
     {
         $frame = $this->_frame;
         $style = $frame->get_style();
-        $w = $frame->get_containing_block("w");
 
-        if ($style->position === "fixed") {
-            $w = $frame->get_parent()->get_containing_block("w");
+        switch ($style->position) {
+            case "absolute":
+                $parent = $frame->find_positionned_parent();
+                if ($parent !== $frame->get_root()->get_first_child()) {
+                    $cb = $parent->get_padding_box();
+                    break;
+                }
+            case "fixed":
+                $cb = $frame->get_root()->get_containing_block();
+                break;
+            default:
+                $cb = $frame->get_containing_block();
         }
+
+        $w = $cb["w"];
 
         $rm = $style->length_in_pt($style->margin_right, $w);
         $lm = $style->length_in_pt($style->margin_left, $w);
@@ -181,14 +192,20 @@ class Block extends AbstractFrameReflower
     {
         $frame = $this->_frame;
         $style = $frame->get_style();
-        $cb = $frame->get_containing_block();
 
-        if ($style->position === "fixed") {
-            $cb = $frame->get_root()->get_containing_block();
+        switch ($style->position) {
+            case "absolute":
+                $parent = $frame->find_positionned_parent();
+                if ($parent !== $frame->get_root()->get_first_child()) {
+                    $cb = $parent->get_padding_box();
+                    break;
+                }
+            case "fixed":
+                $cb = $frame->get_root()->get_containing_block();
+                break;
+            default:
+                $cb = $frame->get_containing_block();
         }
-
-        //if ( $style->position === "absolute" )
-        //  $cb = $frame->find_positionned_parent()->get_containing_block();
 
         if (!isset($cb["w"])) {
             throw new Exception("Box property calculation requires containing block width");
@@ -261,7 +278,20 @@ class Block extends AbstractFrameReflower
         $frame = $this->_frame;
         $style = $frame->get_style();
         $content_height = $this->_calculate_content_height();
-        $cb = $frame->get_containing_block();
+
+        switch ($style->position) {
+            case "absolute":
+                $parent = $frame->find_positionned_parent();
+                if ($parent !== $frame->get_root()->get_first_child()) {
+                    $cb = $parent->get_padding_box();
+                    break;
+                }
+            case "fixed":
+                $cb = $frame->get_root()->get_containing_block();
+                break;
+            default:
+                $cb = $frame->get_containing_block();
+        }
 
         $height = $style->length_in_pt($style->height, $cb["h"]);
 
@@ -790,10 +820,19 @@ class Block extends AbstractFrameReflower
         $this->_collapse_margins();
 
         $style = $this->_frame->get_style();
-        $cb = $this->_frame->get_containing_block();
 
-        if ($style->position === "fixed") {
-            $cb = $this->_frame->get_root()->get_containing_block();
+        switch ($style->position) {
+            case "absolute":
+                $parent = $this->_frame->find_positionned_parent();
+                if ($parent !== $this->_frame->get_root()->get_first_child()) {
+                    $cb = $parent->get_padding_box();
+                    break;
+                }
+            case "fixed":
+                $cb = $this->_frame->get_root()->get_containing_block();
+                break;
+            default:
+                $cb = $this->_frame->get_containing_block();
         }
 
         // Determine the constraints imposed by this frame: calculate the width
